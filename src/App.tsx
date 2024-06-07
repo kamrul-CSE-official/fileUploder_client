@@ -28,23 +28,22 @@ const App: FC = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/fileUpload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        `${import.meta.env.VITE_URL}/fileUpload`,
+        formData
       );
 
       if (response.status === 200) {
         setUploadedUrl(response.data.fileUrl);
         console.log("File uploaded successfully");
       } else {
-        console.error("File upload failed");
+        console.error("File upload failed", response.data);
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.response?.data || error.message);
+      } else {
+        console.error("Unexpected error:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -87,6 +86,7 @@ const App: FC = () => {
           </button>
           {/\.(jpg|jpeg|png)$/i.test(uploadedUrl) && (
             <img
+              style={{ width: "200px", height: "200px" }}
               src={uploadedUrl}
               alt="Uploaded file"
               className="uploaded-image"
