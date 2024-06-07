@@ -1,9 +1,11 @@
 import { FC, useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
+import "./App.css";
 
 const App: FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -20,11 +22,14 @@ const App: FC = () => {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("key", import.meta.env.VITE_IMAGE_UPLODE_KEY as string);
+
+    setLoading(true);
 
     try {
       const response = await axios.post(
         "http://localhost:5000/fileUpload",
-        { formData, key: import.meta.env.KEY },
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -40,6 +45,8 @@ const App: FC = () => {
       }
     } catch (error) {
       console.error("Error uploading file:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,24 +58,40 @@ const App: FC = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
-    >
-      <form onSubmit={handleSubmit} style={{ marginBottom: "1rem" }}>
-        <label htmlFor="file">Select File</label>
-        <input type="file" name="file" id="file" onChange={handleFileChange} />
-        <button type="submit">Upload</button>
+    <div className="container">
+      <form onSubmit={handleSubmit} className="form">
+        <label htmlFor="file" className="label">
+          Select File
+        </label>
+        <input
+          type="file"
+          name="file"
+          id="file"
+          onChange={handleFileChange}
+          className="input"
+        />
+        <button type="submit" className="button" disabled={loading}>
+          {loading ? "Uploading..." : "Upload"}
+        </button>
       </form>
       {uploadedUrl && (
-        <div>
-          <p>File uploaded successfully. URL: {uploadedUrl}</p>
-          <button onClick={handleCopyUrl}>Copy URL</button>
+        <div className="result">
+          <p>
+            File uploaded successfully. URL:{" "}
+            <a href={uploadedUrl} target="_blank" rel="noopener noreferrer">
+              {uploadedUrl}
+            </a>
+          </p>
+          <button onClick={handleCopyUrl} className="button">
+            Copy URL
+          </button>
+          {/\.(jpg|jpeg|png)$/i.test(uploadedUrl) && (
+            <img
+              src={uploadedUrl}
+              alt="Uploaded file"
+              className="uploaded-image"
+            />
+          )}
         </div>
       )}
     </div>
