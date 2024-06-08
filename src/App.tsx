@@ -28,7 +28,7 @@ const App: FC = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_URL}/fileUpload`,
+        `${import.meta.env.VITE_PUBLIC_URL}/fileUpload`,
         formData
       );
 
